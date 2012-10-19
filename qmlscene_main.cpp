@@ -1,8 +1,8 @@
 /*
-  Lokity - A shell for testing Loki programs
+  Klaatu_qmlscene - A shell for testing Klaatu programs
  */
 
-#define LOG_TAG "Loki"
+#define LOG_TAG "Klaatu"
 #include <binder/IPCThreadState.h>
 #include <binder/ProcessState.h>
 #include <binder/IServiceManager.h>
@@ -55,14 +55,14 @@ Q_DECLARE_METATYPE(QList<QPersistentModelIndex>)
 
 static void registerQmlTypes()
 {
-    qmlRegisterType<AudioFile>("Loki", 1, 0, "AudioFile");
+    qmlRegisterType<AudioFile>("Klaatu", 1, 0, "AudioFile");
 
-    qmlRegisterUncreatableType<AudioControl>("Loki", 1, 0, "AudioControl","Single instance");
-    qmlRegisterUncreatableType<ScreenControl>("Loki", 1, 0, "ScreenControl","Single instance");
-    qmlRegisterUncreatableType<Battery>("Loki", 1, 0, "Battery","Single instance");
-    qmlRegisterUncreatableType<InputContext>("Loki", 1, 0, "InputContext","Single instance");
-    qmlRegisterUncreatableType<Settings>("Loki", 1, 0, "Settings","Single instance");
-    qmlRegisterUncreatableType<Wifi>("Loki", 1, 0, "Wifi","Single instance");
+    qmlRegisterUncreatableType<AudioControl>("Klaatu", 1, 0, "AudioControl","Single instance");
+    qmlRegisterUncreatableType<ScreenControl>("Klaatu", 1, 0, "ScreenControl","Single instance");
+    qmlRegisterUncreatableType<Battery>("Klaatu", 1, 0, "Battery","Single instance");
+    qmlRegisterUncreatableType<InputContext>("Klaatu", 1, 0, "InputContext","Single instance");
+    qmlRegisterUncreatableType<Settings>("Klaatu", 1, 0, "Settings","Single instance");
+    qmlRegisterUncreatableType<Wifi>("Klaatu", 1, 0, "Wifi","Single instance");
 
     qRegisterMetaType<QSet<int> >();
     qRegisterMetaType<QList<QPersistentModelIndex> >();
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     setpriority(PRIO_PROCESS, 0, ANDROID_PRIORITY_DISPLAY);
 #endif
     QGuiApplication app(argc, argv);
-    app.setApplicationName("Lokity");
+    app.setApplicationName("Klaatu_QMLScene");
     app.setOrganizationName("Nokia");
     app.setOrganizationDomain("nokia.com");
 

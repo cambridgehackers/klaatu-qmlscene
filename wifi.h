@@ -2,8 +2,8 @@
   Wifi
  */
 
-#ifndef _LOKI_WIFI_H
-#define _LOKI_WIFI_H
+#ifndef _KLAATU_WIFI_H
+#define _KLAATU_WIFI_H
 
 #include <QObject>
 #include <QAbstractListModel>
@@ -199,4 +199,4 @@ private:
     CombinedModel             *mCombinedModel;
 };
 
-#endif // _LOKI_WIFI_H
+#endif // _KLAATU_WIFI_H
