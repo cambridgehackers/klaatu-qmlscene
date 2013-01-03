@@ -76,8 +76,8 @@ int main(int argc, char **argv)
 #endif
     QGuiApplication app(argc, argv);
     app.setApplicationName("Klaatu_QMLScene");
-    app.setOrganizationName("Nokia");
-    app.setOrganizationDomain("nokia.com");
+    app.setOrganizationName("Klaatu");
+    app.setOrganizationDomain("klaatu.com");
 
     QString     device;
     QStringList imports;
