@@ -20,7 +20,7 @@ NUM_PROCS=`cat /proc/cpuinfo  | egrep processor | cat -n | awk {'print $1'} | ta
 cd $QT_DIR;
 
 
-$HOST_DIR/bin/qmake
+$HOST_DIR/bin/qmake CONFIG+=KLAATU_SUSPENDLIB
 echo "APO=$ANDROID_PRODUCT_OUT"
 echo "NUM_PROCS=$NUM_PROCS"
 echo "me=$0"

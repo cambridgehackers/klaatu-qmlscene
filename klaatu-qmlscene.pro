@@ -37,7 +37,10 @@ INCLUDEPATH += ${ANDROID_BUILD_TOP}/system/core/libsuspend/include
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/frameworks/av/include
 
 LIBS += -lmedia -lklaatu_phone -lhardware -lhardware_legacy -linput -lnetutils -lklaatu_wifi
-LIBS += -lsuspend
+
+contains (CONFIG, KLAATU_SUSPENDLIB) {
+    LIBS += -lsuspend
+}
 
 MOC_DIR=.moc
 OBJECTS_DIR=.obj
