@@ -3,6 +3,11 @@
 
 #include <private/qguiapplication_p.h>
 #include <QDebug>
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
+#define CODE_FIELD scanCode
+#else
+#define CODE_FIELD code
+#endif
 
 using namespace android;
 // --------------------------------------------------------------------------------
@@ -31,13 +36,13 @@ public:
     virtual void processEvent(const RawEvent& event) {
 #ifdef NEXUS_INPUT_DEBUG
 	qDebug("Keyboard event: time %lld type=%u code=%u value=%d ", 
-	       event.when, event.type, event.code, event.value);
+	       event.when, event.type, event.CODE_FIELD, event.value);
 #endif
 
 	if (event.type != EV_KEY)
 	    return;
 
-	quint16 code = event.code;
+	quint16 code = event.CODE_FIELD;
 	qint32 value = event.value;
 
 	int keycode = 0;
@@ -146,7 +151,7 @@ TouchscreenDevice::TouchscreenDevice(const QByteArray& name,
 void TouchscreenDevice::processEvent(const RawEvent& event)
 {
     if (event.type == EV_ABS) {
-	if (event.code == ABS_MT_SLOT) {
+	if (event.CODE_FIELD == ABS_MT_SLOT) {
 	    if (mCurrentModified)
 		mContacts.insert(mCurrentSlot, mCurrentData);
 	    mCurrentModified = false;
@@ -155,21 +160,21 @@ void TouchscreenDevice::processEvent(const RawEvent& event)
 	}
 	else {
 	    mCurrentModified = true;
-	    if (event.code == ABS_MT_POSITION_X) {
+	    if (event.CODE_FIELD == ABS_MT_POSITION_X) {
 		mCurrentData.true_x = event.value;
 		mCurrentData.x = qBound(mAxisX.minValue, event.value, mAxisX.maxValue);
-	    } else if (event.code == ABS_MT_POSITION_Y) {
+	    } else if (event.CODE_FIELD == ABS_MT_POSITION_Y) {
 		mCurrentData.true_y = event.value;
 		mCurrentData.y = qBound(mAxisY.minValue, event.value, mAxisY.maxValue);
-	    } else if (event.code == ABS_MT_TRACKING_ID) {
+	    } else if (event.CODE_FIELD == ABS_MT_TRACKING_ID) {
 		mCurrentData.tracking_id = event.value;  // Value of -1 would be a release
-	    } else if (event.code == ABS_MT_PRESSURE) {
+	    } else if (event.CODE_FIELD == ABS_MT_PRESSURE) {
 		mCurrentData.pressure = qBound(0, event.value, mHwPressureMax);
-	    } else if (event.code == ABS_MT_TOUCH_MAJOR) {
+	    } else if (event.CODE_FIELD == ABS_MT_TOUCH_MAJOR) {
 		mCurrentData.maj = event.value;
 	    }
 	}
-    } else if (event.type == EV_SYN && event.code == SYN_REPORT) {
+    } else if (event.type == EV_SYN && event.CODE_FIELD == SYN_REPORT) {
 #ifdef NEXUS_INPUT_DEBUG
 	qDebug() << "SYN_REPORT modified=" << mCurrentModified;
 #endif
@@ -279,14 +284,14 @@ void EventThread::run()
 	for (size_t i = 0 ; i < n ; i++) {
 	    const RawEvent& ev(buffer[i]);
 	    // printf("%lld device_id=%d type=0x%x scanCode=%d keyCode=%d value=%d flags=%u\n", 
-	    // ev.when, ev.deviceId, ev.type, ev.code, ev.keyCode, ev.value, ev.flags);
+	    // ev.when, ev.deviceId, ev.type, ev.CODE_FIELD, ev.keyCode, ev.value, ev.flags);
 	
 	    if (buffer[i].type < EventHubInterface::DEVICE_ADDED) {
 		InputDevice *d = mDeviceMap.value(buffer[i].deviceId);
 		if (d)
 		    d->processEvent(buffer[i]);
 		if (ev.type != 0) {
-		    if (ev.type == 1 && ev.code == KEY_POWER)
+		    if (ev.type == 1 && ev.CODE_FIELD == KEY_POWER)
 			emit powerKey(ev.value);
 		    else
 			emit userActivity();
@@ -305,7 +310,11 @@ void EventThread::run()
 
 void EventThread::addDevice(int32_t id)
 {
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
+    InputDeviceIdentifier identifier;
+#else
     InputDeviceIdentifier identifier = mHub->getDeviceIdentifier(id);
+#endif
     uint32_t klass = mHub->getDeviceClasses(id);
     if (klass & INPUT_DEVICE_CLASS_TOUCH_MT) {
 	RawAbsoluteAxisInfo axis_x, axis_y;

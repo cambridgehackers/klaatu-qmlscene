@@ -7,9 +7,13 @@
 #include "event_thread.h"
 #include "lights.h"
 
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
+#include <hardware/hardware.h>
+#else
 #include <hardware/power.h>
-#include <hardware_legacy/power.h>
 #include <suspend/autosuspend.h>
+#endif
+#include <hardware_legacy/power.h>
 //#include <hardware/hardware.h>
 //#include <hardware/lights.h>
 
@@ -25,19 +29,24 @@ using namespace android;
   power module interface.  See the code in "com_android_server_PowerManagerService.cpp"
  */
 
+#ifdef POWER_HARDWARE_MODULE_ID
 static struct power_module *gPowerModule;
+#endif
 
 static void power_module_init()
 {
+#ifdef POWER_HARDWARE_MODULE_ID
     status_t err = hw_get_module(POWER_HARDWARE_MODULE_ID, (hw_module_t const **) &gPowerModule);
     if (!err)
 	gPowerModule->init(gPowerModule);
     else
 	printf("Couldn't load the %s module (%s)\n", POWER_HARDWARE_MODULE_ID, strerror(-err));
+#endif
 }
 
 static void set_screen_state(bool on)
 {
+#ifdef POWER_HARDWARE_MODULE_ID
     if (on) {
 	autosuspend_disable();
 	if (gPowerModule && gPowerModule->setInteractive)
@@ -47,6 +56,7 @@ static void set_screen_state(bool on)
 	    gPowerModule->setInteractive(gPowerModule, false);
 	autosuspend_enable();
     }
+#endif
 }
 
 // --------------------------------------------------------------------------------

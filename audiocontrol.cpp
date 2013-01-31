@@ -136,8 +136,12 @@ void setStreamVolume(audio_stream_type_t stream, int value)
 int getStreamVolumeIndex(audio_stream_type_t stream) 
 {
     int value = 0;
-    if (AudioSystem::getStreamVolumeIndex(stream, &value, 
-					  AUDIO_DEVICE_OUT_DEFAULT) != NO_ERROR)
+    if (AudioSystem::getStreamVolumeIndex(stream, &value
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
+#else
+					  , AUDIO_DEVICE_OUT_DEFAULT
+#endif
+                                                                  ) != NO_ERROR)
 	fprintf(stderr, "Failed to get stream volume index\n");
     return value;
 }
@@ -145,8 +149,12 @@ int getStreamVolumeIndex(audio_stream_type_t stream)
 void setStreamVolumeIndex(audio_stream_type_t stream, int volume)
 {
     // printf("Setting stream %d to volume index %d\n", stream, volume);
-    if (AudioSystem::setStreamVolumeIndex(stream, volume, 
-					  AUDIO_DEVICE_OUT_DEFAULT) != NO_ERROR)
+    if (AudioSystem::setStreamVolumeIndex(stream, volume
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
+#else
+					  ,AUDIO_DEVICE_OUT_DEFAULT
+#endif
+                                                                  ) != NO_ERROR)
 	fprintf(stderr, "Failed to set stream volume index\n");
 }
 
