@@ -6,7 +6,7 @@
 #include "battery.h"
 #include <hardware_legacy/uevent.h>
 
-#include <linux/netlink.h>
+//#include <linux/netlink.h>
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/queue.h>
