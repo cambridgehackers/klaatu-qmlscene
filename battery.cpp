@@ -6,7 +6,10 @@
 #include "battery.h"
 #include <hardware_legacy/uevent.h>
 
-//#include <linux/netlink.h>
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 42)
+#else
+#include <linux/netlink.h>
+#endif
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/queue.h>
