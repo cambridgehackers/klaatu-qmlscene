@@ -4,7 +4,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
 	qtklaatu-qmlscene-dependencyForcer.c
 
-#LOCAL_SHARED_LIBRARIES := \
+LOCAL_SHARED_LIBRARIES := \
+	libsuspend
 #	libutils \
 #	libbinder
 
