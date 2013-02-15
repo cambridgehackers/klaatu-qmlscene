@@ -5,6 +5,8 @@ set -x
 OUTFILE=$1
 QT_DIR=`dirname $1`
 
+shift
+
 HOST_DIR=$ANDROID_HOST_OUT
 
 
@@ -20,7 +22,7 @@ NUM_PROCS=`cat /proc/cpuinfo  | egrep processor | cat -n | awk {'print $1'} | ta
 cd $QT_DIR;
 
 
-$HOST_DIR/bin/qmake CONFIG+=KLAATU_SUSPENDLIB
+$HOST_DIR/bin/qmake $@
 echo "APO=$ANDROID_PRODUCT_OUT"
 echo "NUM_PROCS=$NUM_PROCS"
 echo "me=$0"

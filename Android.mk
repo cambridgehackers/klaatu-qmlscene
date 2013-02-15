@@ -4,11 +4,15 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
 	qtklaatu-qmlscene-dependencyForcer.c
 
+SVERSION:=$(subst ., ,$(PLATFORM_VERSION))
+SHORT_PLATFORM_VERSION=$(word 1,$(SVERSION))$(word 2,$(SVERSION))
+LOCAL_CFLAGS += -DSHORT_PLATFORM_VERSION=$(SHORT_PLATFORM_VERSION)
+
+ifneq ($(SHORT_PLATFORM_VERSION),40)
+QMAKE_ARGS=CONFIG+=KLAATU_SUSPENDLIB
 LOCAL_SHARED_LIBRARIES := \
 	libsuspend
-#	libutils \
-#	libbinder
-
+endif
 
 ifeq ($(TARGET_OS),linux)
 	LOCAL_CFLAGS += -DXP_UNIX
@@ -27,7 +31,7 @@ intermediates:= $(local-intermediates-dir)
 
 GEN := $(LOCAL_PATH)/qtklaatu-qmlscene-dependencyForcer.c
 $(GEN): PRIVATE_INPUT_FILE := $(LOCAL_PATH)/AndroidQtBuild.sh
-$(GEN): PRIVATE_CUSTOM_TOOL = bash $(PRIVATE_INPUT_FILE) $@ 
+$(GEN): PRIVATE_CUSTOM_TOOL = bash $(PRIVATE_INPUT_FILE) $@ $(QMAKE_ARGS)
 $(GEN): $(LOCAL_PATH)/AndroidQtBuild.sh 
 	$(transform-generated-source)
 $(GEN):$(TARGET_OUT_EXECUTABLES)/qtdeclarative-dependencyForcer 
