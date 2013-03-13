@@ -31,12 +31,13 @@ isEmpty(ATOP) {
 }
 
 message("Using android build top $$(ANDROID_BUILD_TOP)")
-INCLUDEPATH += ${ANDROID_BUILD_TOP}/frameworks/base/services
+INCLUDEPATH += ${ANDROID_BUILD_TOP}/frameworks/base/services/input
+INCLUDEPATH += ${ANDROID_BUILD_TOP}/external/skia/include/core
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/external/klaatu-services/include
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/system/core/libsuspend/include
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/frameworks/av/include
 
-LIBS += -lmedia -lklaatu_phone -lhardware -lhardware_legacy -linput -lnetutils -lklaatu_wifi
+LIBS += -lmedia -lklaatu_phone -lhardware -lhardware_legacy -linput -lnetutils -lklaatu_wifi -landroidfw
 
 contains (CONFIG, KLAATU_SUSPENDLIB) {
     LIBS += -lsuspend

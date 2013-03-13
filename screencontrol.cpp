@@ -79,10 +79,8 @@ ScreenControl::ScreenControl()
     mTimer->setSingleShot(true);
     connect(mTimer, SIGNAL(timeout()), SLOT(timeout()));
 
-    EventThread *ethread = new EventThread;
-    connect(ethread, SIGNAL(userActivity()), SLOT(userActivity()));
-    connect(ethread, SIGNAL(powerKey(int)), SLOT(powerKey(int)));
-    ethread->start();
+    ethread = new EventThread(this);
+    ethread->run("InputReader", PRIORITY_URGENT_DISPLAY);
 
     power_module_init();   // Must come before "setState"
     setState(NORMAL);
@@ -179,7 +177,7 @@ void ScreenControl::powerKey(int value)
 {
 //    qDebug() << Q_FUNC_INFO << value << "current state=" << (int) mState;
 
-    if (value) {  // Key dow
+    if (value) {  // Key down
 	switch (mState) {
 	case NORMAL:
 	    setState(SLEEP);

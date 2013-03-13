@@ -6,6 +6,7 @@
 #define _SCREEN_CONTROL_H
 
 #include <QObject>
+#include "event_thread.h"
 
 class InputHandler;
 class QTimer;
@@ -38,6 +39,7 @@ public:
 
     Q_INVOKABLE void userActivity(int ms = 1000);
     Q_INVOKABLE void goToSleep();
+    void         powerKey(int value);
 
 signals:
     void         dimTimeoutChanged();
@@ -51,7 +53,6 @@ private:
 		   
 private slots:
     void         timeout();
-    void         powerKey(int value);
 
 private:
     int          mDimTimeout;
@@ -59,6 +60,7 @@ private:
     bool         mScreenLockOn;
     SystemState  mState;
     QTimer      *mTimer;
+    android::sp<EventThread> ethread;
 };
 
 #endif // _SCREEN_CONTROL_H
