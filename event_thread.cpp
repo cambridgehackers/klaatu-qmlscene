@@ -170,6 +170,8 @@ void TouchscreenDevice::processEvent(const RawEvent& event)
 		mCurrentData.tracking_id = event.value;  // Value of -1 would be a release
 	    } else if (event.CODE_FIELD == ABS_MT_PRESSURE) {
 		mCurrentData.pressure = qBound(0, event.value, mHwPressureMax);
+		if (!mCurrentData.pressure && mCurrentData.tracking_id == 0)	// tracking_id 0 means that only one finger is touching
+			mCurrentData.tracking_id = -1;  // Value of -1 would be a release
 	    } else if (event.CODE_FIELD == ABS_MT_TOUCH_MAJOR) {
 		mCurrentData.maj = event.value;
 	    }
