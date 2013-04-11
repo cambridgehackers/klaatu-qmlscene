@@ -243,7 +243,20 @@ class KlaatuReaderPolicy: public InputReaderPolicyInterface {
     {
         qDebug("[%s:%d]\n", __FUNCTION__, __LINE__);
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 42)
-static DisplayViewport vport;
+	static DisplayViewport vport;
+        vport.displayId = 0;
+        vport.orientation = 0;
+        vport.logicalLeft = 0;
+        vport.logicalTop = 0;
+        vport.logicalRight = 1;
+        vport.logicalBottom = 1;
+        vport.physicalLeft = 0;
+        vport.physicalTop = 0;
+        vport.physicalRight = 1;
+        vport.physicalBottom = 1;
+        vport.deviceWidth = 1;
+        vport.deviceHeight = 1;
+
         outConfig->setDisplayInfo(false, vport);
 #else
 #if 1
