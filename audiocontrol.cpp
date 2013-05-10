@@ -354,8 +354,9 @@ AudioControl::AudioControl()
 
     // For now, we'll assume that only Maguro devices have a radio
     char devicename[PROPERTY_VALUE_MAX];
+
     if (property_get("ro.product.device", devicename, "") > 0) {
-	if (!strcmp(devicename, "maguro")) {
+	if (!strcmp(devicename, "maguro") || strstr(devicename, "msm8960") ) {
 	    sRadioClient = new RadioClient();
 	    sRadioClient->Register(UM_ALL);
 	    sRadioClient->GetSIMStatus(1);
