@@ -13,7 +13,12 @@
 #define CODE_FIELD code
 #endif
 
+#define DEBUG_INBOUND_EVENT_DETAILS 0
+
 using namespace android;
+
+static int displayWidth;
+static int displayHeight;
 
 class KlaatuInputListener: public DISPATCH_CLASS
 {
@@ -38,6 +43,8 @@ public:
         qDebug("screen size is %d by %d\n", fb_var.xres, fb_var.yres);
         xres = fb_var.xres;
         yres = fb_var.yres;
+        displayWidth = xres;
+        displayHeight = yres;
     };
 
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 23)
@@ -133,6 +140,33 @@ public:
         QList<QWindowSystemInterface::TouchPoint> mTouchPoints;
 	mTouchPoints.clear();
         QWindowSystemInterface::TouchPoint tp;
+	Qt::MouseButtons m_buttons;
+#if DEBUG_INBOUND_EVENT_DETAILS
+    ALOGD("notifyMotion - eventTime=%lld, deviceId=%d, source=0x%x, policyFlags=0x%x, "
+            "action=0x%x, flags=0x%x, metaState=0x%x, buttonState=0x%x, edgeFlags=0x%x, "
+            "xPrecision=%f, yPrecision=%f, downTime=%lld",
+            args->eventTime, args->deviceId, args->source, args->policyFlags,
+            args->action, args->flags, args->metaState, args->buttonState,
+            args->edgeFlags, args->xPrecision, args->yPrecision, args->downTime);
+    for (uint32_t i = 0; i < args->pointerCount; i++) {
+        ALOGD("  Pointer %d: id=%d, toolType=%d, "
+                "x=%f, y=%f, pressure=%f, size=%f, "
+                "touchMajor=%f, touchMinor=%f, toolMajor=%f, toolMinor=%f, "
+                "orientation=%f",
+                i, args->pointerProperties[i].id,
+                args->pointerProperties[i].toolType,
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_X),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_Y),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_PRESSURE),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_SIZE),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_TOUCH_MAJOR),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_TOUCH_MINOR),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_TOOL_MAJOR),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_TOOL_MINOR),
+                args->pointerCoords[i].getAxisValue(AMOTION_EVENT_AXIS_ORIENTATION));
+    }
+#endif
+
 
 	for (unsigned int i = 0; i < args->pointerCount; i++) {
             const PointerCoords pc = args->pointerCoords[i];
@@ -162,21 +196,54 @@ public:
         switch (args->action & AMOTION_EVENT_ACTION_MASK)
 	{
 	case AMOTION_EVENT_ACTION_DOWN:
+#ifdef KLAATU_MOUSE
+	  m_buttons = Qt::LeftButton;
+	  QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
+#else
             mTouchPoints[id].state = Qt::TouchPointPressed;
+#endif
 	  break;
 	case AMOTION_EVENT_ACTION_UP:
+#ifdef KLAATU_MOUSE
+	  m_buttons = Qt::NoButton;
+	  QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
+#else
 	  mTouchPoints[id].state = Qt::TouchPointReleased;
+#endif
 	  break;
 	case AMOTION_EVENT_ACTION_MOVE:
           // err on the side of caution and mark all points as moved
-          for (unsigned int i = 0; i < args->pointerCount; i++)
+          for (unsigned int i = 0; i < args->pointerCount; i++) {
+#ifdef KLAATU_MOUSE
+            m_buttons = Qt::LeftButton;
+            QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
+#else
             mTouchPoints[i].state = Qt::TouchPointMoved;
+#endif
+        }
 	  break;
 	case AMOTION_EVENT_ACTION_POINTER_DOWN:
 	  mTouchPoints[id].state = Qt::TouchPointPressed;
 	  break;
 	case AMOTION_EVENT_ACTION_POINTER_UP:
   	  mTouchPoints[id].state = Qt::TouchPointReleased;
+	  break;
+	case AMOTION_EVENT_ACTION_HOVER_MOVE:
+#ifdef KLAATU_MOUSE
+	  m_buttons = Qt::NoButton;
+	  QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
+#else
+	  qDebug("unhandled event: AMOTION_EVENT_ACTION_HOVER_MOVE\n");
+#endif
+	  break;
+	case AMOTION_EVENT_ACTION_SCROLL:
+	  qDebug("unhandled event: AMOTION_EVENT_ACTION_SCROLL\n");
+	  break;
+	case AMOTION_EVENT_ACTION_HOVER_ENTER:
+	  qDebug("unhandled event: AMOTION_EVENT_ACTION_HOVER_ENTER\n");
+	  break;
+	case AMOTION_EVENT_ACTION_HOVER_EXIT:
+	  qDebug("unhandled event: AMOTION_EVENT_ACTION_HOVER_EXIT\n");
 	  break;
 	default:
 	  qDebug("unrecognized touch event: %d, index %d\n",
@@ -204,7 +271,86 @@ public:
 #endif // not 2.3
 };
 
+// --- FakePointerController for mouse support ---
+// a straight copy of the Android code in frameworks/base/services/input/tests/InputReader_test.cpp
+class FakePointerController : public PointerControllerInterface {
+    bool mHaveBounds;
+    float mMinX, mMinY, mMaxX, mMaxY;
+    float mX, mY;
+    int32_t mButtonState;
+
+protected:
+    virtual ~FakePointerController() { }
+
+public:
+    FakePointerController() :
+        mHaveBounds(false), mMinX(0), mMinY(0), mMaxX(0), mMaxY(0), mX(0), mY(0),
+        mButtonState(0) {
+    }
+
+    void setBounds(float minX, float minY, float maxX, float maxY) {
+        mHaveBounds = true;
+        mMinX = minX;
+        mMinY = minY;
+        mMaxX = maxX;
+        mMaxY = maxY;
+    }
+
+    virtual void setPosition(float x, float y) {
+        mX = x;
+        mY = y;
+    }
+
+    virtual void setButtonState(int32_t buttonState) {
+        mButtonState = buttonState;
+    }
+
+    virtual int32_t getButtonState() const {
+        return mButtonState;
+    }
+
+    virtual void getPosition(float* outX, float* outY) const {
+        *outX = mX;
+        *outY = mY;
+    }
+
+private:
+    virtual bool getBounds(float* outMinX, float* outMinY, float* outMaxX, float* outMaxY) const {
+        *outMinX = mMinX;
+        *outMinY = mMinY;
+        *outMaxX = mMaxX;
+        *outMaxY = mMaxY;
+        return mHaveBounds;
+    }
+
+    virtual void move(float deltaX, float deltaY) {
+        mX += deltaX;
+        if (mX < mMinX) mX = mMinX;
+        if (mX > mMaxX) mX = mMaxX;
+        mY += deltaY;
+        if (mY < mMinY) mY = mMinY;
+        if (mY > mMaxY) mY = mMaxY;
+    }
+
+    virtual void fade(Transition transition) {
+    }
+
+    virtual void unfade(Transition transition) {
+    }
+
+    virtual void setPresentation(Presentation presentation) {
+    }
+
+    virtual void setSpots(const PointerCoords* spotCoords,
+            const uint32_t* spotIdToIndex, BitSet32 spotIdBits) {
+    }
+
+    virtual void clearSpots() {
+    }
+};
+
 class KlaatuReaderPolicy: public InputReaderPolicyInterface {
+    sp<FakePointerController> mPointerControllers;
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 23)
     bool getDisplayInfo(int32_t, int32_t*, int32_t*, int32_t*)
     {
@@ -275,7 +421,9 @@ class KlaatuReaderPolicy: public InputReaderPolicyInterface {
     sp<PointerControllerInterface> obtainPointerController(int32_t deviceId)
     {
         qDebug("[%s:%d] %x\n", __FUNCTION__, __LINE__, deviceId);
-        return NULL;
+        mPointerControllers =  new FakePointerController();
+        mPointerControllers->setBounds(0,0, displayWidth - 1, displayHeight - 1);
+        return mPointerControllers;
     }
     String8 getDeviceAlias(const InputDeviceIdentifier& identifier)
     {

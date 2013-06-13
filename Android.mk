@@ -19,6 +19,11 @@ ifeq ($(TARGET_OS),linux)
 #LOCAL_SHARED_LIBRARIES += librt
 endif
 
+ifeq (panda,$(TARGET_DEVICE))
+QMAKE_ARGS += CONFIG+=KLAATU_MOUSE
+QMAKE_ARGS += CONFIG+=TARGET_DEVICE_PANDA
+endif
+
 LOCAL_MODULE:= qtklaatu-qmlscene-dependencyForcer
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := EXECUTABLES

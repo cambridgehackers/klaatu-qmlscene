@@ -130,9 +130,11 @@ int main(int argc, char **argv)
 					      Battery::instance());
     engine->rootContext()->setContextProperty(QStringLiteral("settings"),
 					      Settings::instance());
+#ifdef KLAATU_NO_WIFI
+#else
     engine->rootContext()->setContextProperty(QStringLiteral("wifi"),
 					      Wifi::instance());
-
+#endif
     InputContext *context = InputContext::instance();
     QInputMethodPrivate *inputMethodPrivate = QInputMethodPrivate::get(qApp->inputMethod());
     inputMethodPrivate->testContext = context;
