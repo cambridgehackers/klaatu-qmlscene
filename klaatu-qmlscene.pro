@@ -24,6 +24,7 @@ HEADERS = \
     inputcontext.h \
     settings.h \
     wifi.h \
+    sensor.h \
     callmodel.h \
     klaatuapplication.h \
     cursorsignal.h
@@ -40,7 +41,7 @@ INCLUDEPATH += ${ANDROID_BUILD_TOP}/external/klaatu-services/include
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/system/core/libsuspend/include
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/frameworks/av/include
 
-LIBS += -lmedia -lklaatu_phone -lhardware -lhardware_legacy -linput -lnetutils -lklaatu_wifi
+LIBS += -lmedia -lklaatu_phone -lhardware -lhardware_legacy -linput -lnetutils -lklaatu_wifi -lklaatu_sensors
 
 contains (CONFIG, KLAATU_OLDLIBS) {
     LIBS += -lui
