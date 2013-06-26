@@ -37,10 +37,12 @@ INCLUDEPATH += ${ANDROID_BUILD_TOP}/external/klaatu-services/include
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/system/core/libsuspend/include
 INCLUDEPATH += ${ANDROID_BUILD_TOP}/frameworks/av/include
 
-LIBS += -lmedia -lklaatu_phone -lhardware -lhardware_legacy -linput -lnetutils -lklaatu_wifi -landroidfw
+LIBS += -lmedia -lklaatu_phone -lhardware -lhardware_legacy -linput -lnetutils -lklaatu_wifi
 
-contains (CONFIG, KLAATU_SUSPENDLIB) {
-    LIBS += -lsuspend
+contains (CONFIG, KLAATU_OLDLIBS) {
+    LIBS += -lui
+} else {
+    LIBS += -landroidfw -lsuspend
 }
 
 contains (CONFIG, KLAATU_MOUSE) {
