@@ -6,7 +6,6 @@
 #define _SCREEN_CONTROL_H
 
 #include <QObject>
-#include "event_thread.h"
 
 class InputHandler;
 class QTimer;
@@ -60,7 +59,6 @@ private:
     bool         mScreenLockOn;
     SystemState  mState;
     QTimer      *mTimer;
-    android::sp<EventThread> ethread;
 };
 
 #endif // _SCREEN_CONTROL_H

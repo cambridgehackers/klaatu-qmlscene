@@ -27,12 +27,14 @@
 #include "inputcontext.h"
 #include "settings.h"
 #include "wifi.h"
+#include "klaatuapplication.h"
 
 #include <QtGui/private/qinputmethod_p.h>
 #include <qpa/qplatforminputcontext.h>
 #include <qpa/qplatformintegration.h>
 #include <QList>
 #include <QPersistentModelIndex>
+#include "event_thread.h"
 
 using namespace android;
 
@@ -74,7 +76,7 @@ int main(int argc, char **argv)
 #if defined(HAVE_PTHREADS)
     setpriority(PRIO_PROCESS, 0, ANDROID_PRIORITY_DISPLAY);
 #endif
-    QGuiApplication app(argc, argv);
+    KlaatuApplication app(argc, argv);
     app.setApplicationName("Klaatu_QMLScene");
     app.setOrganizationName("Klaatu");
     app.setOrganizationDomain("klaatu.com");
@@ -122,16 +124,16 @@ int main(int argc, char **argv)
 	engine->addImportPath(imports.at(i));
 
     ProcessState::self()->startThreadPool();
+    ScreenControl *screen = ScreenControl::instance();
     engine->rootContext()->setContextProperty(QStringLiteral("screencontrol"), 
-					      ScreenControl::instance());
+					      screen);
     engine->rootContext()->setContextProperty(QStringLiteral("audiocontrol"), 
 					      AudioControl::instance());
     engine->rootContext()->setContextProperty(QStringLiteral("battery"), 
 					      Battery::instance());
     engine->rootContext()->setContextProperty(QStringLiteral("settings"),
 					      Settings::instance());
-#ifdef KLAATU_NO_WIFI
-#else
+#ifndef KLAATU_NO_WIFI
     engine->rootContext()->setContextProperty(QStringLiteral("wifi"),
 					      Wifi::instance());
 #endif
@@ -142,6 +144,13 @@ int main(int argc, char **argv)
     QObject::connect(&app, SIGNAL(focusObjectChanged(QObject *)), context, SLOT(focusObjectChanged(QObject *)));
 
     view->setSource(args.at(0));
+
+    // We have to create the EventThread after setting the view source
+    // so that the OpenGL ES context is initialized before we try to
+    // set the mouse cursor on or off.
+    android::sp<EventThread> ethread;
+    ethread = new EventThread(screen, new android::EventHub());
+    ethread->run("InputReader", PRIORITY_URGENT_DISPLAY);
 
     QObject::connect(engine, SIGNAL(quit()), &app, SLOT(quit()));
     view->showFullScreen();

@@ -20,7 +20,6 @@ ifeq ($(TARGET_OS),linux)
 endif
 
 ifeq (panda,$(TARGET_DEVICE))
-QMAKE_ARGS += CONFIG+=KLAATU_MOUSE
 QMAKE_ARGS += CONFIG+=TARGET_DEVICE_PANDA
 endif
 

@@ -12,7 +12,8 @@ SOURCES = \
     inputcontext.cpp \
     settings.cpp \
     wifi.cpp \
-    callmodel.cpp 
+    callmodel.cpp \
+    klaatuapplication.cpp
 
 HEADERS = \
     screencontrol.h \
@@ -23,7 +24,9 @@ HEADERS = \
     inputcontext.h \
     settings.h \
     wifi.h \
-    callmodel.h
+    callmodel.h \
+    klaatuapplication.h \
+    cursorsignal.h
 
 ATOP=$$(ANDROID_BUILD_TOP)
 isEmpty(ATOP) {
@@ -43,11 +46,6 @@ contains (CONFIG, KLAATU_OLDLIBS) {
     LIBS += -lui
 } else {
     LIBS += -landroidfw -lsuspend
-}
-
-contains (CONFIG, KLAATU_MOUSE) {
-    QMAKE_CXXFLAGS += -DKLAATU_MOUSE
-    QMAKE_CFLAGS += -DKLAATU_MOUSE
 }
 
 MOC_DIR=.moc

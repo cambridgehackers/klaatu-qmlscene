@@ -16,13 +16,14 @@
 #define DISPATCH_CLASS InputListenerInterface
 #endif
 #include <private/qguiapplication_p.h>
+#include <EventHub.h>
 
 class ScreenControl;
 
 class EventThread : public android::InputReaderThread {
 
 public:
-    EventThread(ScreenControl *s);
+    EventThread(ScreenControl *s, android::EventHub *hub);
 
 private:
     android::sp<android::EventHub> mHub;

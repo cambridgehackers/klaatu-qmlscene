@@ -9,6 +9,8 @@
 #include "screencontrol.h"
 #include "sys/ioctl.h"
 #include "linux/fb.h"
+#include "klaatuapplication.h"
+#include "cursorsignal.h"
 
 #include <QDebug>
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
@@ -104,7 +106,7 @@ public:
         qDebug("[%s:%d]\n", __FUNCTION__, __LINE__);
     }
 #else
-    void notifyConfigurationChanged(const NotifyConfigurationChangedArgs* args)
+    void notifyConfigurationChanged(const NotifyConfigurationChangedArgs*)
     {
         qDebug("[%s:%d]\n", __FUNCTION__, __LINE__);
     }
@@ -140,11 +142,10 @@ public:
 
     void notifyMotion(const NotifyMotionArgs* args)
     {
-        float x, y;
+        float x=0.0, y=0.0;
         QList<QWindowSystemInterface::TouchPoint> mTouchPoints;
 	mTouchPoints.clear();
         QWindowSystemInterface::TouchPoint tp;
-	Qt::MouseButtons m_buttons;
 #if DEBUG_INBOUND_EVENT_DETAILS
     ALOGD("notifyMotion - eventTime=%lld, deviceId=%d, source=0x%x, policyFlags=0x%x, "
             "action=0x%x, flags=0x%x, metaState=0x%x, buttonState=0x%x, edgeFlags=0x%x, "
@@ -187,10 +188,10 @@ public:
             tp.area = QRectF(0, 0,
                              pc.getAxisValue(AMOTION_EVENT_AXIS_TOUCH_MAJOR),
                              pc.getAxisValue(AMOTION_EVENT_AXIS_TOUCH_MINOR));
-            tp.area.moveCenter(QPoint((int)(x * xres), (int)(y * yres)));
+            tp.area.moveCenter(QPoint((int)x, (int)y));
 	
             // Get a normalized position in range 0..1.
-            tp.normalPosition = QPointF(x, y);
+            tp.normalPosition = QPointF(x / xres, y / yres);
 
             mTouchPoints.append(tp);
         }
@@ -200,30 +201,15 @@ public:
         switch (args->action & AMOTION_EVENT_ACTION_MASK)
 	{
 	case AMOTION_EVENT_ACTION_DOWN:
-#ifdef KLAATU_MOUSE
-	  m_buttons = Qt::LeftButton;
-	  QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
-#else
             mTouchPoints[id].state = Qt::TouchPointPressed;
-#endif
 	  break;
 	case AMOTION_EVENT_ACTION_UP:
-#ifdef KLAATU_MOUSE
-	  m_buttons = Qt::NoButton;
-	  QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
-#else
 	  mTouchPoints[id].state = Qt::TouchPointReleased;
-#endif
 	  break;
 	case AMOTION_EVENT_ACTION_MOVE:
           // err on the side of caution and mark all points as moved
           for (unsigned int i = 0; i < args->pointerCount; i++) {
-#ifdef KLAATU_MOUSE
-            m_buttons = Qt::LeftButton;
-            QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
-#else
             mTouchPoints[i].state = Qt::TouchPointMoved;
-#endif
         }
 	  break;
 	case AMOTION_EVENT_ACTION_POINTER_DOWN:
@@ -233,12 +219,16 @@ public:
   	  mTouchPoints[id].state = Qt::TouchPointReleased;
 	  break;
 	case AMOTION_EVENT_ACTION_HOVER_MOVE:
-#ifdef KLAATU_MOUSE
-	  m_buttons = Qt::NoButton;
-	  QWindowSystemInterface::handleMouseEvent(0, tp.normalPosition,tp.normalPosition , m_buttons);
-#else
-	  qDebug("unhandled event: AMOTION_EVENT_ACTION_HOVER_MOVE\n");
-#endif
+            if (args->pointerProperties[0].toolType ==
+                AMOTION_EVENT_TOOL_TYPE_MOUSE)
+            {
+                // For some reason, Qt only wants to respond to
+                // HOVER_MOVE events as mouse events, not touch events.
+                QPointF coords(x, y);
+                QWindowSystemInterface::handleMouseEvent(0, coords, coords,
+                                                         Qt::NoButton);
+                return;
+            }
 	  break;
 	case AMOTION_EVENT_ACTION_SCROLL:
 	  qDebug("unhandled event: AMOTION_EVENT_ACTION_SCROLL\n");
@@ -264,11 +254,11 @@ public:
 #endif
         QWindowSystemInterface::handleTouchEvent(0, mDevice, mTouchPoints);
     }
-    void notifySwitch(const NotifySwitchArgs* args)
+    void notifySwitch(const NotifySwitchArgs*)
     {
         qDebug("[%s:%d]\n", __FUNCTION__, __LINE__);
     }
-    void notifyDeviceReset(const NotifyDeviceResetArgs* args)
+    void notifyDeviceReset(const NotifyDeviceResetArgs*)
     {
         qDebug("[%s:%d]\n", __FUNCTION__, __LINE__);
     }
@@ -336,17 +326,17 @@ private:
         if (mY > mMaxY) mY = mMaxY;
     }
 
-    virtual void fade(Transition transition) {
+    virtual void fade(Transition) {
     }
 
-    virtual void unfade(Transition transition) {
+    virtual void unfade(Transition) {
     }
 
-    virtual void setPresentation(Presentation presentation) {
+    virtual void setPresentation(Presentation) {
     }
 
-    virtual void setSpots(const PointerCoords* spotCoords,
-            const uint32_t* spotIdToIndex, BitSet32 spotIdBits) {
+    virtual void setSpots(const PointerCoords*,
+            const uint32_t*, BitSet32) {
     }
 
     virtual void clearSpots() {
@@ -355,6 +345,9 @@ private:
 
 class KlaatuReaderPolicy: public InputReaderPolicyInterface {
     sp<FakePointerController> mPointerControllers;
+    EventHub *mHub;
+    CursorSignal *cursorSignal;
+
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 23)
     bool getDisplayInfo(int32_t, int32_t*, int32_t*, int32_t*)
     {
@@ -392,41 +385,37 @@ class KlaatuReaderPolicy: public InputReaderPolicyInterface {
     void getReaderConfiguration(InputReaderConfiguration* outConfig)
     {
         qDebug("[%s:%d]\n", __FUNCTION__, __LINE__);
+        struct fb_var_screeninfo fb_var;
+        int fd = open("/dev/graphics/fb0", O_RDONLY);
+        ioctl(fd, FBIOGET_VSCREENINFO, &fb_var);
+        close(fd);
+        qDebug("screen size is %d by %d\n", fb_var.xres, fb_var.yres);
+
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 42)
 	static DisplayViewport vport;
         vport.displayId = 0;
         vport.orientation = 0;
         vport.logicalLeft = 0;
         vport.logicalTop = 0;
-        vport.logicalRight = 1;
-        vport.logicalBottom = 1;
+        vport.logicalRight = fb_var.xres;
+        vport.logicalBottom = fb_var.yres;
         vport.physicalLeft = 0;
         vport.physicalTop = 0;
-        vport.physicalRight = 1;
-        vport.physicalBottom = 1;
-        vport.deviceWidth = 1;
-        vport.deviceHeight = 1;
+        vport.physicalRight = fb_var.xres;
+        vport.physicalBottom = fb_var.yres;
+        vport.deviceWidth = fb_var.xres;
+        vport.deviceHeight = fb_var.yres;
 
         outConfig->setDisplayInfo(false, vport);
 #else
-#if 1
-        // output the normalized coordinates
-        outConfig->setDisplayInfo(0, false, 1, 1, 0);
-#else
-        struct fb_var_screeninfo fb_var;
-        int fd = open("/dev/graphics/fb0", O_RDONLY);
-        ioctl(fd, FBIOGET_VSCREENINFO, &fb_var);
-        close(fd);
-        qDebug("screen size is %d by %d\n", fb_var.xres, fb_var.yres);
         outConfig->setDisplayInfo(0, false, fb_var.xres, fb_var.yres, 0);
-#endif
 #endif
     }
     sp<PointerControllerInterface> obtainPointerController(int32_t deviceId)
     {
         qDebug("[%s:%d] %x\n", __FUNCTION__, __LINE__, deviceId);
         mPointerControllers =  new FakePointerController();
-        mPointerControllers->setBounds(0,0, displayWidth - 1, displayHeight - 1);
+        mPointerControllers->setBounds(0, 0, displayWidth - 1, displayHeight - 1);
         return mPointerControllers;
     }
     String8 getDeviceAlias(const InputDeviceIdentifier& identifier)
@@ -444,26 +433,43 @@ class KlaatuReaderPolicy: public InputReaderPolicyInterface {
 #endif
     void notifyInputDevicesChanged(const Vector<InputDeviceInfo>& inputDevices)
     {
+        bool cursorDevice = false;
         qDebug("[%s:%d]\n", __FUNCTION__, __LINE__);
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
 #else
         for (unsigned int i = 0; i < inputDevices.size(); i++) {
             qDebug("name %s\n", inputDevices[i].getIdentifier().name.string());
+            if (mHub->getDeviceClasses(inputDevices[i].getId()) & INPUT_DEVICE_CLASS_CURSOR)
+            {
+                qDebug("Found cursor device\n");
+                cursorDevice = true;
+            }
 #if 0
             qDebug("x axis %f - %f\n",
                    inputDevices[i].getMotionRange(AMOTION_EVENT_AXIS_X, 0)->min,
                    inputDevices[i].getMotionRange(AMOTION_EVENT_AXIS_X, 0)->max);
 #endif
         }
+        // send a signal to the GUI thread to cause it to change the cursor
+        emit cursorSignal->showMouse(cursorDevice);
 #endif
     }
 #endif // not 2.3
+    public:
+    KlaatuReaderPolicy(EventHub *hub) : mHub(hub)
+    {
+        cursorSignal = new CursorSignal();
+        KlaatuApplication *ka =
+            ((KlaatuApplication *)(QCoreApplication::instance()));
+        cursorSignal->connect(cursorSignal, SIGNAL(showMouse(bool)), ka, SLOT(showMouse(bool)));
+    }
 };
 
 // --------------------------------------------------------------------------------
-EventThread::EventThread(ScreenControl *s) :
-        InputReaderThread(new InputReader(new EventHub(),
-                           new KlaatuReaderPolicy(),
+EventThread::EventThread(ScreenControl *s, EventHub *hub) :
+        InputReaderThread(new InputReader(hub,
+                           new KlaatuReaderPolicy(hub),
                            new KlaatuInputListener(s)))
 {
+    mHub = hub;
 }

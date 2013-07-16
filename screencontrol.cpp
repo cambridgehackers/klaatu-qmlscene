@@ -79,9 +79,6 @@ ScreenControl::ScreenControl()
     mTimer->setSingleShot(true);
     connect(mTimer, SIGNAL(timeout()), SLOT(timeout()));
 
-    ethread = new EventThread(this);
-    ethread->run("InputReader", PRIORITY_URGENT_DISPLAY);
-
     power_module_init();   // Must come before "setState"
     setState(NORMAL);
 }
