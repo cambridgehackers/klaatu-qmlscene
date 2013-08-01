@@ -1052,7 +1052,11 @@ public:
             }
             break;
 	default:
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION < 41)
+            if (args->keyCode > AKEYCODE_CALCULATOR)
+#else
             if (args->keyCode > AKEYCODE_ASSIST)
+#endif
                 qWarning("Keyboard Device: unrecognized keycode=%d",
                          args->keyCode);
             else
