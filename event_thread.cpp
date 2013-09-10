@@ -1331,7 +1331,7 @@ class KlaatuReaderPolicy: public InputReaderPolicyInterface {
         close(fd);
         qDebug("screen size is %d by %d\n", fb_var.xres, fb_var.yres);
 
-#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 42)
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION >= 42)
 	static DisplayViewport vport;
         vport.displayId = 0;
         vport.orientation = 0;
