@@ -11,6 +11,7 @@ SOURCES = \
     battery.cpp \
     inputcontext.cpp \
     settings.cpp \
+    sensors.cpp \
     wifi.cpp \
     callmodel.cpp \
     klaatuapplication.cpp
@@ -23,6 +24,7 @@ HEADERS = \
     battery.h \
     inputcontext.h \
     settings.h \
+    sensors.h \
     wifi.h \
     sensor.h \
     callmodel.h \

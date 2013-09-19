@@ -28,6 +28,7 @@
 #include "settings.h"
 #include "wifi.h"
 #include "klaatuapplication.h"
+#include "sensors.h"
 
 #include <QtGui/private/qinputmethod_p.h>
 #include <qpa/qplatforminputcontext.h>
@@ -65,6 +66,7 @@ static void registerQmlTypes()
     qmlRegisterUncreatableType<InputContext>("Klaatu", 1, 0, "InputContext","Single instance");
     qmlRegisterUncreatableType<Settings>("Klaatu", 1, 0, "Settings","Single instance");
     qmlRegisterUncreatableType<Wifi>("Klaatu", 1, 0, "Wifi","Single instance");
+    qmlRegisterUncreatableType<Wifi>("Klaatu", 1, 0, "Sensors","Single instance");
 
     qRegisterMetaType<QSet<int> >();
     qRegisterMetaType<QList<QPersistentModelIndex> >();
@@ -133,6 +135,8 @@ int main(int argc, char **argv)
 					      Battery::instance());
     engine->rootContext()->setContextProperty(QStringLiteral("settings"),
 					      Settings::instance());
+    engine->rootContext()->setContextProperty(QStringLiteral("sensors"),
+                                              Sensors::instance()),
 #ifndef KLAATU_NO_WIFI
     engine->rootContext()->setContextProperty(QStringLiteral("wifi"),
 					      Wifi::instance());
