@@ -10,6 +10,7 @@ SOURCES = \
     lights.cpp \
     battery.cpp \
     inputcontext.cpp \
+    power.cpp \
     settings.cpp \
     sensors.cpp \
     wifi.cpp \
@@ -23,6 +24,7 @@ HEADERS = \
     lights.h \
     battery.h \
     inputcontext.h \
+    power.h \
     settings.h \
     sensors.h \
     wifi.h \
