@@ -1,5 +1,5 @@
 /*
-A front-end for the sensortest-ndk application
+A power-off switch
  */
 
 #include "power.h"
