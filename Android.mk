@@ -19,10 +19,14 @@ LOCAL_MODULE:= klaatu_qmlscene
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_CLASS := EXECUTABLES
 
-LOCAL_SHARED_LIBRARIES := \
+LOCAL_SHARED_LIBRARIES += \
 	libQtCore \
 	libQtV8 \
-	libQtQml
+	libQtQml \
+	libklaatu_phone \
+	libinput \
+	libklaatu_wifi \
+	libklaatu_sensors
 
 include $(BUILD_SYSTEM)/binary.mk
 
