@@ -53,6 +53,10 @@ contains (CONFIG, KLAATU_OLDLIBS) {
     LIBS += -landroidfw -lsuspend
 }
 
+contains (CONFIG, KLAATU_INPUT_SERVICE) {
+    LIBS += -linputservice
+}
+
 MOC_DIR=.moc
 OBJECTS_DIR=.obj
 

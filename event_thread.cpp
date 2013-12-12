@@ -3,7 +3,11 @@
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION < 41)
 #include <ui/KeycodeLabels.h>
 #else
+#if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION < 44)
 #include <androidfw/KeycodeLabels.h>
+#else
+#include <input/KeycodeLabels.h>
+#endif
 #endif
 #include <android/keycodes.h>
 #include "screencontrol.h"
