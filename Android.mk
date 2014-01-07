@@ -36,6 +36,21 @@ LOCAL_SHARED_LIBRARIES += libinputservice
 QMAKE_ARGS += CONFIG+=KLAATU_INPUT_SERVICE
 endif
 
+ALL_DEFAULT_INSTALLED_MODULES += \
+	sensorservice \
+	rild \
+	mediaserver \
+	netd \
+	wpa_supplicant \
+	wpa_supplicant.conf \
+	dhcpcd \
+	dhcpcd-run-hooks \
+	95-configured \
+	20-dns.conf \
+	audio.primary.default \
+	audio_policy.default \
+	local_time.default
+
 include $(BUILD_SYSTEM)/binary.mk
 
 file := $(LOCAL_PATH)/Makefile
