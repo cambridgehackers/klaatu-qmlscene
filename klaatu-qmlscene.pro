@@ -13,6 +13,7 @@ SOURCES = \
     power.cpp \
     settings.cpp \
     sensors.cpp \
+    screenorientation.cpp \
     wifi.cpp \
     callmodel.cpp \
     klaatuapplication.cpp
@@ -27,6 +28,7 @@ HEADERS = \
     power.h \
     settings.h \
     sensors.h \
+    screenorientation.h \
     wifi.h \
     sensor.h \
     callmodel.h \

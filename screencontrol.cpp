@@ -5,7 +5,6 @@
 
 #include "screencontrol.h"
 #include "event_thread.h"
-#include "sensors/sensor.h"
 #include "lights.h"
 
 #if defined(SHORT_PLATFORM_VERSION) && (SHORT_PLATFORM_VERSION == 40)
@@ -71,25 +70,6 @@ ScreenControl *ScreenControl::instance()
     return _s_screen_control;
 }
 
-void sensor_handler(int type, int rotation)
-{
-    QScreen *qtscreen = QGuiApplication::primaryScreen();
-    qDebug("%s: screen=%p\n", __FUNCTION__, qtscreen);
-    switch (rotation) {
-        case 0:
-            QWindowSystemInterface::handleScreenOrientationChange(qtscreen, Qt::PortraitOrientation);
-            break;
-        case 1:
-            QWindowSystemInterface::handleScreenOrientationChange(qtscreen, Qt::LandscapeOrientation);
-            break;
-        case 2:
-            QWindowSystemInterface::handleScreenOrientationChange(qtscreen, Qt::InvertedPortraitOrientation);
-            break;
-        case 3:
-            QWindowSystemInterface::handleScreenOrientationChange(qtscreen, Qt:: InvertedLandscapeOrientation);
-            break;
-    }
-}
 ScreenControl::ScreenControl()
     : mDimTimeout(-1)
     , mSleepTimeout(3000)
@@ -99,17 +79,6 @@ ScreenControl::ScreenControl()
     mTimer = new QTimer(this);
     mTimer->setSingleShot(true);
     connect(mTimer, SIGNAL(timeout()), SLOT(timeout()));
-
-    // For now, we'll assume that only Maguro devices have a radio
-    char devicename[PROPERTY_VALUE_MAX];
-
-    if (property_get("ro.product.device", devicename, "") > 0) {
-        if (!strcmp(devicename, "maguro")) {
-        android::KlaatuSensor *k   = new android::KlaatuSensor();
-        k->sensor_event_handler = sensor_handler;
-        k->initSensor(Sensor::TYPE_ACCELEROMETER);
-        }
-    }
 
     power_module_init();   // Must come before "setState"
     setState(NORMAL);

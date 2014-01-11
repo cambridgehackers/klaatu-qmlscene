@@ -29,6 +29,7 @@
 #include "wifi.h"
 #include "klaatuapplication.h"
 #include "sensors.h"
+#include "screenorientation.h"
 #include "power.h"
 
 #include <QtGui/private/qinputmethod_p.h>
@@ -68,6 +69,7 @@ static void registerQmlTypes()
     qmlRegisterUncreatableType<Settings>("Klaatu", 1, 0, "Settings","Single instance");
     qmlRegisterUncreatableType<Wifi>("Klaatu", 1, 0, "Wifi","Single instance");
     qmlRegisterUncreatableType<Wifi>("Klaatu", 1, 0, "Sensors","Single instance");
+    qmlRegisterUncreatableType<Wifi>("Klaatu", 1, 0, "ScreenOrientation","Single instance");
     qmlRegisterUncreatableType<Wifi>("Klaatu", 1, 0, "Power","Single instance");
 
     qRegisterMetaType<QSet<int> >();
@@ -139,6 +141,8 @@ int main(int argc, char **argv)
 					      Settings::instance());
     engine->rootContext()->setContextProperty(QStringLiteral("sensors"),
                                               Sensors::instance()),
+    engine->rootContext()->setContextProperty(QStringLiteral("screenorientation"),
+                                              ScreenOrientation::instance()),
     engine->rootContext()->setContextProperty(QStringLiteral("power"),
                                               Power::instance()),
 #ifndef KLAATU_NO_WIFI
@@ -162,6 +166,7 @@ int main(int argc, char **argv)
 
     QObject::connect(engine, SIGNAL(quit()), &app, SLOT(quit()));
     view->showFullScreen();
+
     return app.exec();
 }
 
