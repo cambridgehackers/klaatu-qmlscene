@@ -13,8 +13,6 @@ A front-end for the sensortest-ndk application
 
 using namespace android;
 
-static QProcess *mProcess = NULL;
-
 android::KlaatuSensor *k=NULL;
 
 void sensor_handler(int type, int rotation)
@@ -58,15 +56,6 @@ ScreenOrientation::~ScreenOrientation()
 void ScreenOrientation::runProcess(QString arg)
 {
      printf("%s In\n", __func__);
-     if(!mProcess) {
-     	mProcess = new QProcess(this);
-     	//connect (mProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(processOutput()));
-     }
-     QStringList arguments;
-     arguments << arg;
-     mProcess->setProcessChannelMode(QProcess::MergedChannels);
-     
-
 
     //char devicename[PROPERTY_VALUE_MAX];
 
@@ -92,6 +81,4 @@ void ScreenOrientation::closeProcess()
 		printf("%s calling exitSensor\n", __func__);
 		k->exitSensor(Sensor::TYPE_ACCELEROMETER);
 	}
-        if(mProcess && mProcess->state())
-                mProcess->close();
 }
