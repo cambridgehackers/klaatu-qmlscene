@@ -47,6 +47,8 @@ ScreenOrientation *ScreenOrientation::instance()
 
 ScreenOrientation::ScreenOrientation()
 {
+        k   = new android::KlaatuSensor();
+        k->sensor_event_handler = sensor_handler;
 }
 
 ScreenOrientation::~ScreenOrientation()
@@ -76,10 +78,6 @@ void ScreenOrientation::runProcess(QString arg)
         if (!strcmp(devicename, "maguro"))
         #endif
         {
-        //android::KlaatuSensor *k   = new android::KlaatuSensor();
-        k   = new android::KlaatuSensor();
-        k->sensor_event_handler = sensor_handler;
-        //sleep(3);
         printf("%s calling initSensor\n", __func__);
         k->initSensor(Sensor::TYPE_ACCELEROMETER);
         }
