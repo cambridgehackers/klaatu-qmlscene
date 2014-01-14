@@ -166,7 +166,6 @@ int main(int argc, char **argv)
 
     QObject::connect(engine, SIGNAL(quit()), &app, SLOT(quit()));
     view->showFullScreen();
-
     return app.exec();
 }
 
