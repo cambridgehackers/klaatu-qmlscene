@@ -31,6 +31,7 @@
 #include "sensors.h"
 #include "screenorientation.h"
 #include "power.h"
+#include "command.h"
 
 #include <QtGui/private/qinputmethod_p.h>
 #include <qpa/qplatforminputcontext.h>
@@ -145,6 +146,8 @@ int main(int argc, char **argv)
                                               ScreenOrientation::instance()),
     engine->rootContext()->setContextProperty(QStringLiteral("power"),
                                               Power::instance()),
+    engine->rootContext()->setContextProperty(QStringLiteral("command"),
+                                              Command::instance()),
 #ifndef KLAATU_NO_WIFI
     engine->rootContext()->setContextProperty(QStringLiteral("wifi"),
 					      Wifi::instance());

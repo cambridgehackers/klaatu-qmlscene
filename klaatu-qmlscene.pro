@@ -11,6 +11,7 @@ SOURCES = \
     battery.cpp \
     inputcontext.cpp \
     power.cpp \
+    command.cpp \
     settings.cpp \
     sensors.cpp \
     screenorientation.cpp \
@@ -26,6 +27,7 @@ HEADERS = \
     battery.h \
     inputcontext.h \
     power.h \
+    command.h \
     settings.h \
     sensors.h \
     screenorientation.h \
